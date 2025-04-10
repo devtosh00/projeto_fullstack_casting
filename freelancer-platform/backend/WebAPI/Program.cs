@@ -91,6 +91,7 @@ builder.Services.AddAuthentication(options =>
 // Register services
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IProjectService, ProjectService>();
+builder.Services.AddScoped<IProjectParticipationService, ProjectParticipationService>();
 
 // Configure CORS
 builder.Services.AddCors(options =>

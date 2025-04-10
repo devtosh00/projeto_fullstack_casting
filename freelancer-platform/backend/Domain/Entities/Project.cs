@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace Domain.Entities
 {
@@ -12,7 +13,15 @@ namespace Domain.Entities
         public required string Status { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         
+        // Novos campos para funcionalidade de oportunidades
+        public bool IsPublic { get; set; } = false;
+        public int MaxParticipants { get; set; } = 1;
+        public bool HasVacancies { get; set; } = false;
+        
         // Navegação para o usuário (anulável)
         public User? User { get; set; }
+        
+        // Navegação para participantes do projeto
+        public ICollection<ProjectParticipation>? Participations { get; set; }
     }
 } 

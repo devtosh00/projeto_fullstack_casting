@@ -13,6 +13,7 @@ namespace Infrastructure.Data
 
         public DbSet<User> Users { get; set; }
         public DbSet<Project> Projects { get; set; }
+        public DbSet<ProjectParticipation> ProjectParticipations { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -44,13 +45,21 @@ namespace Infrastructure.Data
                 entity.Property(e => e.Status).IsRequired().HasMaxLength(50);
                 entity.Property(e => e.CreatedAt).IsRequired();
                 
+                // Novos campos para funcionalidade de oportunidades
+                entity.Property(e => e.IsPublic).IsRequired().HasDefaultValue(false);
+                entity.Property(e => e.MaxParticipants).IsRequired().HasDefaultValue(1);
+                entity.Property(e => e.HasVacancies).IsRequired().HasDefaultValue(false);
+                
                 // Índices para campos frequentemente consultados
                 entity.HasIndex(e => e.UserId);  // Índice para FK
                 entity.HasIndex(e => e.Status);  // Filtros por status são comuns
                 entity.HasIndex(e => e.Deadline); // Filtros por prazo são comuns
+                entity.HasIndex(e => e.IsPublic); // Filtro por visibilidade
+                entity.HasIndex(e => e.HasVacancies); // Filtro por vagas disponíveis
                 
                 // Índice composto para consultas comuns
                 entity.HasIndex(e => new { e.UserId, e.Status });
+                entity.HasIndex(e => new { e.IsPublic, e.HasVacancies }); // Para filtrar projetos públicos com vagas
 
                 // Foreign key constraint
                 entity.HasOne(e => e.User)
@@ -60,6 +69,32 @@ namespace Infrastructure.Data
 
                 // Budget validation - usando a nova sintaxe
                 entity.ToTable(tb => tb.HasCheckConstraint("CK_Project_Budget_Min", "\"Budget\" >= 100"));
+            });
+            
+            // ProjectParticipation
+            modelBuilder.Entity<ProjectParticipation>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.ProjectId).IsRequired();
+                entity.Property(e => e.UserId).IsRequired();
+                entity.Property(e => e.Role).IsRequired().HasMaxLength(50);
+                entity.Property(e => e.JoinedAt).IsRequired();
+                
+                // Índices para consultas frequentes
+                entity.HasIndex(e => e.ProjectId);
+                entity.HasIndex(e => e.UserId);
+                entity.HasIndex(e => new { e.ProjectId, e.UserId }).IsUnique(); // Garantir que um usuário só participe uma vez de cada projeto
+                
+                // Relacionamentos
+                entity.HasOne(e => e.Project)
+                      .WithMany(p => p.Participations)
+                      .HasForeignKey(e => e.ProjectId)
+                      .OnDelete(DeleteBehavior.Cascade);
+                      
+                entity.HasOne(e => e.User)
+                      .WithMany(u => u.Participations)
+                      .HasForeignKey(e => e.UserId)
+                      .OnDelete(DeleteBehavior.NoAction); // Evita conflito com o cascade delete do projeto
             });
         }
         

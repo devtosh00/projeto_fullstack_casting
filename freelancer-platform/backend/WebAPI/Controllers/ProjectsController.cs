@@ -15,10 +15,14 @@ namespace WebAPI.Controllers
     public class ProjectsController : ControllerBase
     {
         private readonly IProjectService _projectService;
+        private readonly IProjectParticipationService _participationService;
 
-        public ProjectsController(IProjectService projectService)
+        public ProjectsController(
+            IProjectService projectService,
+            IProjectParticipationService participationService)
         {
             _projectService = projectService;
+            _participationService = participationService;
         }
 
         [HttpPost]
@@ -39,7 +43,7 @@ namespace WebAPI.Controllers
             return CreatedAtAction(nameof(GetUserProjects), new { userId = result.UserId }, result);
         }
 
-        [HttpGet("{userId}")]
+        [HttpGet("user/{userId}")]
         public async Task<IActionResult> GetUserProjects(int userId)
         {
             // Somente permitir que o usuário veja seus próprios projetos
@@ -51,6 +55,59 @@ namespace WebAPI.Controllers
 
             var projects = await _projectService.GetUserProjectsAsync(userId);
             return Ok(projects);
+        }
+        
+        [HttpGet("details/{projectId}")]
+        public async Task<IActionResult> GetProjectDetails(int projectId)
+        {
+            var userId = GetCurrentUserId();
+            var project = await _projectService.GetProjectByIdAsync(projectId);
+            
+            if (project == null)
+            {
+                return NotFound("Projeto não encontrado.");
+            }
+            
+            // Se o projeto não é público, verificar se o usuário é o proprietário ou participante
+            if (!project.IsPublic)
+            {
+                bool isOwner = project.UserId == userId;
+                bool isParticipant = await _participationService.IsUserParticipantAsync(projectId, userId);
+                
+                if (!isOwner && !isParticipant)
+                {
+                    return Forbid();
+                }
+            }
+            
+            return Ok(project);
+        }
+        
+        [HttpPut("{projectId}")]
+        public async Task<IActionResult> UpdateProject(int projectId, [FromBody] ProjectCreationDto projectDto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            
+            var userId = GetCurrentUserId();
+            
+            // Verificar se o usuário é o proprietário do projeto
+            var isOwner = await _projectService.IsProjectOwnerAsync(projectId, userId);
+            if (!isOwner)
+            {
+                return Forbid();
+            }
+            
+            var result = await _projectService.UpdateProjectAsync(projectId, projectDto, userId);
+            
+            if (!result)
+            {
+                return NotFound("Projeto não encontrado ou você não tem permissão para editá-lo.");
+            }
+            
+            return NoContent();
         }
 
         [HttpDelete("{projectId}")]
@@ -65,6 +122,13 @@ namespace WebAPI.Controllers
             }
 
             return NoContent();
+        }
+        
+        [HttpGet("public")]
+        public async Task<IActionResult> GetPublicProjects()
+        {
+            var projects = await _projectService.GetPublicProjectsWithVacanciesAsync();
+            return Ok(projects);
         }
 
         private int GetCurrentUserId()

@@ -9,6 +9,7 @@ namespace Contracts.Interfaces
     {
         DbSet<User> Users { get; set; }
         DbSet<Project> Projects { get; set; }
+        DbSet<ProjectParticipation> ProjectParticipations { get; set; }
         
         Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
     }
