@@ -132,10 +132,10 @@ namespace Application.Services
             }).ToList();
         }
         
-        public async Task<ProjectDto> GetProjectByIdAsync(int projectId)
+        public async Task<ProjectDto?> GetProjectByIdAsync(int projectId)
         {
             var project = await _context.Projects
-                .Include(p => p.Participations)
+                .Include(p => p.Participations!)
                     .ThenInclude(p => p.User)
                 .FirstOrDefaultAsync(p => p.Id == projectId);
                 
@@ -244,7 +244,7 @@ namespace Application.Services
         public async Task<bool> UpdateProjectVacanciesAsync(int projectId)
         {
             var project = await _context.Projects
-                .Include(p => p.Participations)
+                .Include(p => p.Participations!)
                 .FirstOrDefaultAsync(p => p.Id == projectId);
                 
             if (project == null)
