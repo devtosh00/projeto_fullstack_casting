@@ -1,200 +1,267 @@
 # Plataforma Freelancer
 
 ## Visão Geral
-Plataforma completa para gerenciamento de projetos freelance, permitindo que usuários criem projetos, contratem freelancers e participem de oportunidades públicas. O sistema é construído com arquitetura moderna e separa claramente o backend e frontend.
 
-## Arquitetura do Sistema
+A Plataforma Freelancer é um sistema completo para gerenciamento de projetos freelance que permite aos usuários criar projetos, gerenciar equipes e participar de oportunidades disponíveis no mercado. O sistema foi desenvolvido com uma arquitetura moderna que separa claramente o backend e frontend, facilitando a manutenção e escalabilidade.
 
-### Componentes Principais
-- **Backend**: API REST em .NET Core 9 com Entity Framework Core
-- **Frontend**: Single Page Application em Angular 17+
-- **Banco de Dados**: PostgreSQL
-- **Autenticação**: JWT (JSON Web Tokens)
-- **Infraestrutura**: Docker e Docker Compose
+## Índice
 
-### Estrutura do Projeto
+- [Arquitetura](#arquitetura)
+- [Funcionalidades](#funcionalidades)
+- [Tecnologias](#tecnologias)
+- [Estrutura do Projeto](#estrutura-do-projeto)
+- [Execução do Projeto](#execução-do-projeto)
+- [API](#api)
+- [Frontend](#frontend)
+- [Banco de Dados](#banco-de-dados)
+- [Segurança](#segurança)
+- [Resolução de Problemas](#resolução-de-problemas)
+
+## Arquitetura
+
+A plataforma utiliza uma arquitetura de microsserviços com três componentes principais:
+
+1. **Backend**: API REST em .NET Core 9 organizada segundo os princípios de Clean Architecture
+2. **Frontend**: Single Page Application (SPA) em Angular 17 com design responsivo
+3. **Banco de Dados**: PostgreSQL para armazenamento de dados relacionais
+
+A aplicação é totalmente containerizada com Docker, permitindo fácil deployment e ambientes consistentes.
+
+## Funcionalidades
+
+### Gerenciamento de Usuários
+- Registro e autenticação de usuários
+- Perfis de usuário com histórico de projetos
+
+### Gerenciamento de Projetos
+- Criação, edição e exclusão de projetos
+- Definição de orçamento e prazos
+- Configuração de projetos públicos ou privados
+- Controle de vagas disponíveis
+
+### Participação em Projetos
+- Participação em projetos públicos
+- Gerenciamento de equipes
+- Atribuição de funções aos participantes
+
+### Oportunidades
+- Listagem de projetos públicos com vagas disponíveis
+- Filtros para busca de oportunidades
+- Interface intuitiva para solicitação de participação
+
+## Tecnologias
+
+### Backend
+- **.NET Core 9**: Framework moderno e de alto desempenho
+- **Entity Framework Core**: ORM para acesso a dados
+- **JWT Authentication**: Sistema seguro de autenticação
+- **Swagger**: Documentação automática da API
+- **Clean Architecture**: Organização do código em camadas bem definidas
+
+### Frontend
+- **Angular 17+**: Framework frontend progressivo e reativo
+- **Angular Material**: Componentes de UI consistentes
+- **TailwindCSS**: Framework CSS utilitário para estilização
+- **RxJS**: Biblioteca para programação reativa
+- **JWT Interceptor**: Gerenciamento automático de tokens de autenticação
+
+### Infraestrutura
+- **Docker**: Containerização da aplicação
+- **Docker Compose**: Orquestração de múltiplos contêineres
+- **PostgreSQL**: Banco de dados relacional
+- **Nginx**: Servidor web para o frontend
+
+## Estrutura do Projeto
+
 ```
 freelancer-app/
-├── backend/             # Backend em .NET Core 9
-│   ├── Application/     # Lógica de aplicação, serviços e DTOs
-│   ├── Contracts/       # Contratos e interfaces
-│   ├── Domain/          # Entidades de domínio
-│   ├── Infrastructure/  # Persistência e acesso a dados
-│   └── WebAPI/          # Controllers e configurações da API
-├── frontend/            # Frontend em Angular 17+
-│   ├── src/
-│   │   ├── app/
-│   │   │   ├── core/    # Serviços core e autenticação
-│   │   │   ├── features/# Componentes por funcionalidade
-│   │   │   └── shared/  # Componentes compartilhados
-│   │   ├── assets/      # Recursos estáticos
-│   │   └── environments/# Configurações por ambiente
-├── docs/                # Documentação
-│   └── api-endpoints.md # Detalhes dos endpoints
-└── docker-compose.yml   # Configuração Docker
+├── backend/             # API em .NET Core 9
+│   ├── Application/     # Lógica de negócios, DTOs e serviços
+│   ├── Contracts/       # Interfaces e contratos
+│   ├── Domain/          # Entidades e regras de domínio
+│   ├── Infrastructure/  # Implementações de persistência
+│   ├── WebAPI/          # Endpoints e configuração da API
+│   └── infra/           # Arquivos de infraestrutura (Docker, DB)
+├── frontend/            # Aplicação Angular
+│   ├── src/app/
+│   │   ├── core/        # Serviços essenciais e autenticação
+│   │   ├── features/    # Módulos de funcionalidades
+│   │   └── shared/      # Componentes e serviços compartilhados
+├── docker-compose.yml   # Configuração Docker para todo o sistema
 ```
 
-## Modelo de Dados
-
-### Entidades Principais
-1. **User**
-   - Id, Username, Email, PasswordHash
-   - Relacionamentos: Projects (1:N), ProjectParticipations (1:N)
-
-2. **Project**
-   - Id, UserId, Description, Budget, Deadline, Status
-   - IsPublic, MaxParticipants, HasVacancies
-   - Relacionamentos: User (N:1), ProjectParticipations (1:N)
-
-3. **ProjectParticipation**
-   - Id, ProjectId, UserId, Role, JoinedAt
-   - Relacionamentos: Project (N:1), User (N:1)
-
-### Diagrama Relacional Simplificado
-```
-User (1) --< Project (1) --< ProjectParticipation >-- (N) User
-```
-
-## Backend (.NET Core 9)
-
-### Recursos e Tecnologias
-- **Arquitetura Limpa** (Clean Architecture)
-- **Entity Framework Core** para ORM
-- **JWT** para autenticação e autorização
-- **Swagger** para documentação da API
-- **Injeção de Dependência** nativa
-- **Repository Pattern** para acesso a dados
-
-### Principais Endpoints
-
-#### Autenticação
-- `POST /api/Auth/register` - Registrar novo usuário
-- `POST /api/Auth/login` - Login de usuário
-
-#### Projetos
-- `GET /api/Projects/user/{userId}` - Listar projetos do usuário
-- `GET /api/Projects/details/{projectId}` - Obter detalhes de um projeto
-- `POST /api/Projects` - Criar novo projeto
-- `PUT /api/Projects/{projectId}` - Atualizar projeto
-- `DELETE /api/Projects/{projectId}` - Excluir projeto
-- `GET /api/Projects/public` - Listar projetos públicos
-
-#### Participações
-- `GET /api/ProjectParticipations/user/{userId}` - Listar participações do usuário
-- `GET /api/ProjectParticipations/project/{projectId}` - Listar participantes de um projeto
-- `POST /api/ProjectParticipations/join/{projectId}` - Participar de um projeto
-- `DELETE /api/ProjectParticipations/leave/{projectId}` - Sair de um projeto
-- `GET /api/ProjectParticipations/opportunities` - Listar oportunidades disponíveis
-
-## Frontend (Angular 17+)
-
-### Recursos e Tecnologias
-- **Angular Material** para componentes de UI
-- **TailwindCSS** para estilização
-- **RxJS** para programação reativa
-- **NgRx** (opcional) para gerenciamento de estado
-- **Angular Router** para navegação
-- **Interceptors** para gerenciamento de autenticação
-
-### Principais Módulos/Funcionalidades
-- **Autenticação**: Login, registro e gerenciamento de tokens
-- **Dashboard**: Visão geral dos projetos e participações
-- **Gerenciamento de Projetos**: Criar, editar, listar e excluir projetos
-- **Participações**: Participar, listar e cancelar participações em projetos
-- **Oportunidades**: Visualizar projetos públicos disponíveis
-
-## Docker e Infraestrutura
-
-### Containers
-- **PostgreSQL**: Banco de dados relacional
-- **Backend**: API .NET Core
-- **Frontend**: Servidor web (nginx) para aplicação Angular
-
-### Configuração
-O arquivo `docker-compose.yml` inclui:
-- Configuração dos containers
-- Mapeamento de portas
-- Volumes para persistência
-- Variáveis de ambiente
-- Dependências entre serviços
-
-## Como Utilizar
+## Execução do Projeto
 
 ### Pré-requisitos
-- Docker e Docker Compose
-- [Opcional] .NET 9 SDK (para desenvolvimento)
-- [Opcional] Node.js e NPM (para desenvolvimento)
+- Docker e Docker Compose instalados
+- Git para clonar o repositório
 
-### Instalação e Execução
+### Instalação com Docker (Recomendado)
+
 1. **Clone o repositório**:
    ```bash
-   git clone [url-do-repositorio]
+   git clone https://github.com/seu-usuario/freelancer-app.git
    cd freelancer-app
    ```
 
-2. **Execute com Docker Compose**:
+2. **Inicie os contêineres**:
    ```bash
    docker-compose up -d
    ```
-   
-   Isso iniciará:
-   - O banco de dados PostgreSQL na porta 5432
-   - A API backend na porta 5164
-   - O frontend na porta 4200
 
 3. **Acesse a aplicação**:
    - Frontend: http://localhost:4200
-   - API Swagger: http://localhost:5164/swagger
+   - API/Swagger: http://localhost:5164/swagger
 
-### Desenvolvimento Local (Sem Docker)
+O Docker Compose iniciará automaticamente:
+- PostgreSQL na porta 5432
+- Backend .NET Core na porta 5164
+- Frontend Angular na porta 4200
+
+### Instalação para Desenvolvimento
 
 #### Backend:
 ```bash
-cd backend/WebAPI
+cd freelancer-app/backend
 dotnet restore
-dotnet run
+dotnet run --project WebAPI
 ```
 
 #### Frontend:
 ```bash
-cd frontend
+cd freelancer-app/frontend
 npm install
 ng serve
 ```
 
-## Fluxos de Funcionalidades
+## API
 
-### Fluxo de Autenticação
-1. Usuário se registra com username, email e senha
-2. Usuário faz login e recebe um token JWT
-3. Token é armazenado no localStorage e enviado em requisições subsequentes
+A API segue os princípios REST e fornece endpoints para todas as funcionalidades do sistema.
 
-### Fluxo de Criação de Projeto
-1. Usuário autenticado acessa área de criação de projetos
-2. Preenche dados como descrição, orçamento, prazo e status
-3. Define se o projeto é público e quantos participantes pode ter
-4. Submete o formulário e o projeto é criado
+### Endpoints Principais
 
-### Fluxo de Participação em Projeto
-1. Usuário visualiza lista de oportunidades públicas
-2. Seleciona um projeto e solicita participação
-3. Sistema valida se há vagas disponíveis
-4. Usuário é adicionado como participante do projeto
+#### Autenticação
+- `POST /api/Auth/register` - Registrar novo usuário
+- `POST /api/Auth/login` - Autenticar usuário e obter token JWT
 
-## Segurança e Boas Práticas
-- Autenticação com JWT e refresh tokens
-- Validação de dados de entrada no backend
-- Autorização baseada em claims
-- Proteção contra CSRF e XSS
-- Tratamento padronizado de erros
-- Logs estruturados
+#### Projetos
+- `GET /api/Projects` - Listar todos os projetos
+- `GET /api/Projects/user/{userId}` - Listar projetos do usuário
+- `GET /api/Projects/details/{projectId}` - Obter detalhes de um projeto
+- `POST /api/Projects` - Criar novo projeto
+- `PUT /api/Projects/{projectId}` - Atualizar projeto existente
+- `DELETE /api/Projects/{projectId}` - Remover projeto
+- `GET /api/Projects/public` - Listar projetos públicos
+
+#### Participações
+- `GET /api/ProjectParticipations/user/{userId}` - Listar participações do usuário
+- `GET /api/ProjectParticipations/project/{projectId}` - Listar participantes do projeto
+- `POST /api/ProjectParticipations` - Solicitar participação em projeto
+- `DELETE /api/ProjectParticipations/project/{projectId}` - Cancelar participação
+- `GET /api/ProjectParticipations/opportunities` - Listar oportunidades disponíveis
+
+### Autenticação API
+
+A API utiliza autenticação JWT (JSON Web Token):
+1. O cliente obtém um token através do endpoint de login
+2. O token deve ser incluído no cabeçalho de todas as requisições subsequentes:
+   ```
+   Authorization: Bearer {seu-token-jwt}
+   ```
+3. Tokens expiram após um período configurável (padrão: 1 hora)
+
+## Frontend
+
+A interface do usuário é construída com Angular, proporcionando uma experiência moderna e responsiva.
+
+### Principais Telas
+
+- **Login/Registro**: Formulários de autenticação
+- **Dashboard**: Visão geral dos projetos e participações do usuário
+- **Gerenciador de Projetos**: Interface para criar e gerenciar projetos
+- **Marketplace de Oportunidades**: Listagem de projetos públicos disponíveis
+- **Participações**: Gerenciamento de participações nos projetos
+
+### Fluxo do Usuário
+
+1. Usuário se registra na plataforma ou faz login
+2. No dashboard, ele pode visualizar seus projetos ou oportunidades
+3. Pode criar um novo projeto através do formulário dedicado
+4. Pode definir o projeto como público ou privado e configurar vagas
+5. Outros usuários podem visualizar projetos públicos e solicitar participação
+6. O criador do projeto pode gerenciar as participações
+
+## Banco de Dados
+
+O sistema utiliza PostgreSQL como banco de dados relacional.
+
+### Modelo de Dados
+
+#### Principais Entidades:
+
+1. **User**
+   - Armazena informações de usuários (nome, email, senha hasheada)
+   - Gerencia relacionamentos com projetos e participações
+
+2. **Project**
+   - Contém detalhes dos projetos (título, descrição, orçamento)
+   - Flags de configuração (público/privado, número máximo de participantes)
+   - Status do projeto (Em planejamento, Em andamento, Concluído)
+
+3. **ProjectParticipation**
+   - Registra participações de usuários em projetos
+   - Mantém informações sobre papel/função no projeto
+   - Armazena data de entrada no projeto
+
+### Esquema Simplificado
+```
+User (1) --< Project (1) --< ProjectParticipation >-- (N) User
+```
+
+## Segurança
+
+### Medidas de Segurança Implementadas
+
+- **Senhas**: Armazenadas com hash seguro (bcrypt)
+- **Autenticação**: JWT com rotação de tokens
+- **Autorização**: Baseada em claims para controle de acesso
+- **Validação**: Todos os inputs são validados no backend
+- **HTTPS**: Comunicação criptografada (em produção)
+- **Proteção CSRF/XSS**: Implementada nos níveis de API e frontend
 
 ## Resolução de Problemas
-- **Erro de conexão com o banco**: Verifique se o container do PostgreSQL está ativo
-- **Erro 401**: Token de autenticação inválido ou expirado
-- **Erro 404**: Endpoint não encontrado, verifique a URL
-- **Erro 400**: Dados inválidos, verifique o payload enviado
+
+### Problemas Comuns
+
+1. **Erro de conexão com o banco de dados**
+   - Verifique se o container do PostgreSQL está em execução
+   - Confira se as credenciais estão corretas no docker-compose.yml
+
+2. **Erro 401 Unauthorized**
+   - O token JWT pode ter expirado
+   - Faça login novamente para obter um novo token
+
+3. **Não é possível participar de um projeto**
+   - Verifique se o projeto é público
+   - Confirme se ainda há vagas disponíveis
+   - Verifique se você já não é participante
+
+4. **Erro ao executar docker-compose**
+   - Certifique-se de que as portas 5432, 5164 e 4200 estão disponíveis
+   - Verifique se o Docker está em execução
 
 ---
 
-Para mais informações detalhadas, consulte os READMEs específicos nas pastas `/backend` e `/frontend` e a documentação na pasta `/docs`. 
+## Desenvolvimento e Contribuição
+
+Para contribuir com o projeto:
+
+1. Faça um fork do repositório
+2. Crie uma branch para sua feature (`git checkout -b feature/nova-funcionalidade`)
+3. Faça commit das alterações (`git commit -m 'Adiciona nova funcionalidade'`)
+4. Envie para o repositório remoto (`git push origin feature/nova-funcionalidade`)
+5. Abra um Pull Request
+
+---
+
+Para suporte adicional, entre em contato com a equipe de desenvolvimento. 
