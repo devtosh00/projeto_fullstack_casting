@@ -1,8 +1,4 @@
 import { RenderMode, ServerRoute } from '@angular/ssr';
 
-export const serverRoutes: ServerRoute[] = [
-  {
-    path: '**',
-    renderMode: RenderMode.Prerender
-  }
-];
+// Desativar pré-renderização para rotas com parâmetros
+export const serverRoutes: ServerRoute[] = [];
