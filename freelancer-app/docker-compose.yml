@@ -1,6 +1,7 @@
 version: '3.8'
 
 services:
+  # PostgreSQL Database
   postgres:
     image: postgres:15
     container_name: freelancer-db
@@ -8,26 +9,46 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: freelancer_db
+      POSTGRES_HOST_AUTH_METHOD: trust
+      POSTGRES_SHARED_BUFFERS: 256MB
+      POSTGRES_WORK_MEM: 32MB
+      POSTGRES_EFFECTIVE_CACHE_SIZE: 1GB
+      POSTGRES_LOG_MIN_DURATION_STATEMENT: 1000
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./backend/infra/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
     restart: unless-stopped
 
+  # Backend API (.NET)
   backend:
     build:
-      context: ./backend
+      context: ./backend/backend
       dockerfile: Dockerfile
     container_name: freelancer-api
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     ports:
       - "5164:80"
     environment:
-      ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=freelancer_db;Username=postgres;Password=postgres"
-      ASPNETCORE_ENVIRONMENT: Development
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:80
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=freelancer_db;Username=postgres;Password=postgres;Pooling=true;Maximum Pool Size=20;Connection Idle Lifetime=15;Command Timeout=60
+    networks:
+      - app-network
     restart: unless-stopped
 
+  # Frontend (Angular)
   frontend:
     build:
       context: ./frontend
@@ -37,7 +58,13 @@ services:
       - backend
     ports:
       - "4200:80"
+    networks:
+      - app-network
     restart: unless-stopped
+
+networks:
+  app-network:
+    driver: bridge
 
 volumes:
   postgres_data: 
