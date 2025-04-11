@@ -1,0 +1,326 @@
+@use '@angular/material' as mat;
+
+/* Incluindo as funcionalidades básicas do Material */
+@include mat.core();
+
+/* Tema simplificado que evita as definições de paleta do Angular Material */
+
+/* Definição de variáveis CSS com design tokens */
+:root {
+  /* Paleta de cores principais */
+  --primary: #7b1fa2;  /* Cor roxa principal */
+  --primary-light: #ae52d4;
+  --primary-dark: #4a0072;
+  
+  /* Cores de destaque/acento */
+  --accent: #ffc107;  /* Amarelo */
+  --accent-light: #fff350;
+  --accent-dark: #c79100;
+  
+  /* Cores de alerta */
+  --warn: #f44336;  /* Vermelho */
+  --warn-light: #ffcdd2;
+  --warn-dark: #ba000d;
+  
+  /* Cores específicas da interface */
+  --navbar-color: #ffffff;  /* Barra de navegação branca */
+  --icon-color: #7b1fa2;    /* Ícones roxos */
+  
+  /* Cores de texto */
+  --text-primary: #333333;
+  --text-secondary: #757575;
+  --text-hint: rgba(0, 0, 0, 0.38);
+  --text-disabled: rgba(0, 0, 0, 0.38);
+  --text-on-primary: white;
+  --text-on-accent: black;
+  
+  /* Cores de fundo */
+  --background: #f5f5f5;
+  --surface: white;
+  --divider: #e0e0e0;
+  --border: #e0e0e0;
+  
+  /* Espaçamento */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  
+  /* Raios de borda */
+  --border-radius-sm: 4px;
+  --border-radius-md: 8px;
+  --border-radius-lg: 16px;
+  
+  /* Elevação e sombras */
+  --shadow-1: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+  --shadow-2: 0 3px 6px rgba(0, 0, 0, 0.15), 0 2px 4px rgba(0, 0, 0, 0.12);
+  --shadow-3: 0 10px 20px rgba(0, 0, 0, 0.15), 0 3px 6px rgba(0, 0, 0, 0.10);
+  --shadow-4: 0 14px 28px rgba(0, 0, 0, 0.25), 0 10px 10px rgba(0, 0, 0, 0.22);
+  --shadow-5: 0 19px 38px rgba(0, 0, 0, 0.3), 0 15px 12px rgba(0, 0, 0, 0.22);
+  
+  /* Tipografia */
+  --font-size-sm: 14px;
+  --font-size-md: 16px;
+  --font-size-lg: 18px;
+  --font-size-xl: 24px;
+  --font-size-xxl: 32px;
+}
+
+/* Sobrescrever cores da barra de navegação para ser branca */
+.mat-toolbar.mat-primary, 
+.mat-mdc-toolbar.mat-primary {
+  background-color: var(--navbar-color) !important;
+  color: var(--text-primary) !important;
+  border-bottom: 3px solid var(--accent) !important;
+  box-shadow: var(--shadow-1);
+}
+
+/* Garantir que ícones sejam roxos */
+.mat-icon, 
+mat-icon {
+  color: var(--icon-color) !important;
+}
+
+/* Texto em negrito na barra */
+.mat-toolbar a,
+.mat-toolbar button,
+.mat-toolbar .app-name,
+.mat-toolbar .nav-text,
+.mat-mdc-toolbar a,
+.mat-mdc-toolbar button,
+.mat-mdc-toolbar .app-name,
+.mat-mdc-toolbar .nav-text {
+  font-weight: 700 !important;
+  color: var(--text-primary) !important;
+}
+
+/* Botões primários roxos */
+.mat-mdc-raised-button.mat-primary {
+  background-color: var(--primary) !important;
+  color: var(--text-on-primary) !important;
+}
+
+/* Botões de destaque amarelos */
+.mat-mdc-raised-button.mat-accent {
+  background-color: var(--accent) !important;
+  color: var(--text-on-accent) !important;
+}
+
+// Estilos para cards
+.mat-mdc-card {
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow-1);
+  transition: box-shadow 0.3s ease-in-out;
+  
+  &:hover {
+    box-shadow: var(--shadow-2);
+  }
+}
+
+// Estilos para inputs
+.mat-mdc-form-field {
+  width: 100%;
+  margin-bottom: var(--spacing-md);
+}
+
+// Estilos para chips
+.mat-mdc-chip {
+  font-weight: 500;
+  
+  &.chip-primary {
+    background-color: var(--primary-light) !important;
+    color: white !important;
+  }
+  
+  &.chip-accent {
+    background-color: var(--accent-light) !important;
+    color: black !important;
+  }
+  
+  &.chip-warn {
+    background-color: var(--warn-light) !important;
+    color: white !important;
+  }
+}
+
+// Estilos para tabelas
+.mat-mdc-table {
+  width: 100%;
+  background-color: var(--surface);
+  border-radius: var(--border-radius-md);
+  overflow: hidden;
+  box-shadow: var(--shadow-1);
+  
+  .mat-mdc-header-row {
+    background-color: var(--background);
+  }
+  
+  .mat-mdc-header-cell {
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+  
+  .mat-mdc-row {
+    &:nth-child(even) {
+      background-color: var(--background);
+    }
+    
+    &:hover {
+      background-color: rgba(0, 0, 0, 0.04);
+    }
+  }
+}
+
+// Estilos para listas
+.mat-mdc-list-item {
+  border-bottom: 1px solid var(--divider);
+  
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+// Utilitários de margem
+.mt-1 { margin-top: var(--spacing-xs); }
+.mt-2 { margin-top: var(--spacing-sm); }
+.mt-3 { margin-top: var(--spacing-md); }
+.mt-4 { margin-top: var(--spacing-lg); }
+.mt-5 { margin-top: var(--spacing-xl); }
+
+.mb-1 { margin-bottom: var(--spacing-xs); }
+.mb-2 { margin-bottom: var(--spacing-sm); }
+.mb-3 { margin-bottom: var(--spacing-md); }
+.mb-4 { margin-bottom: var(--spacing-lg); }
+.mb-5 { margin-bottom: var(--spacing-xl); }
+
+.ml-1 { margin-left: var(--spacing-xs); }
+.ml-2 { margin-left: var(--spacing-sm); }
+.ml-3 { margin-left: var(--spacing-md); }
+.ml-4 { margin-left: var(--spacing-lg); }
+.ml-5 { margin-left: var(--spacing-xl); }
+
+.mr-1 { margin-right: var(--spacing-xs); }
+.mr-2 { margin-right: var(--spacing-sm); }
+.mr-3 { margin-right: var(--spacing-md); }
+.mr-4 { margin-right: var(--spacing-lg); }
+.mr-5 { margin-right: var(--spacing-xl); }
+
+// Utilitários de padding
+.p-1 { padding: var(--spacing-xs); }
+.p-2 { padding: var(--spacing-sm); }
+.p-3 { padding: var(--spacing-md); }
+.p-4 { padding: var(--spacing-lg); }
+.p-5 { padding: var(--spacing-xl); }
+
+.py-1 { padding-top: var(--spacing-xs); padding-bottom: var(--spacing-xs); }
+.py-2 { padding-top: var(--spacing-sm); padding-bottom: var(--spacing-sm); }
+.py-3 { padding-top: var(--spacing-md); padding-bottom: var(--spacing-md); }
+.py-4 { padding-top: var(--spacing-lg); padding-bottom: var(--spacing-lg); }
+.py-5 { padding-top: var(--spacing-xl); padding-bottom: var(--spacing-xl); }
+
+.px-1 { padding-left: var(--spacing-xs); padding-right: var(--spacing-xs); }
+.px-2 { padding-left: var(--spacing-sm); padding-right: var(--spacing-sm); }
+.px-3 { padding-left: var(--spacing-md); padding-right: var(--spacing-md); }
+.px-4 { padding-left: var(--spacing-lg); padding-right: var(--spacing-lg); }
+.px-5 { padding-left: var(--spacing-xl); padding-right: var(--spacing-xl); }
+
+// Utilitários flexbox
+.flex { display: flex; }
+.inline-flex { display: inline-flex; }
+.flex-col { flex-direction: column; }
+.items-center { align-items: center; }
+.justify-center { justify-content: center; }
+.justify-between { justify-content: space-between; }
+.justify-around { justify-content: space-around; }
+.flex-wrap { flex-wrap: wrap; }
+.flex-1 { flex: 1 1 0%; }
+.flex-auto { flex: 1 1 auto; }
+.flex-initial { flex: 0 1 auto; }
+.flex-none { flex: none; }
+.flex-grow { flex-grow: 1; }
+.flex-shrink { flex-shrink: 1; }
+.flex-grow-0 { flex-grow: 0; }
+.flex-shrink-0 { flex-shrink: 0; }
+
+// Utilitários para gap
+.gap-1 { gap: var(--spacing-xs); }
+.gap-2 { gap: var(--spacing-sm); }
+.gap-3 { gap: var(--spacing-md); }
+.gap-4 { gap: var(--spacing-lg); }
+.gap-5 { gap: var(--spacing-xl); }
+
+// Utilitários de largura e altura
+.w-full { width: 100%; }
+.h-full { height: 100%; }
+.min-h-screen { min-height: 100vh; }
+
+// Utilitários de texto
+.text-center { text-align: center; }
+.text-left { text-align: left; }
+.text-right { text-align: right; }
+.text-sm { font-size: 0.875rem; }
+.text-base { font-size: 1rem; }
+.text-lg { font-size: 1.125rem; }
+.text-xl { font-size: 1.25rem; }
+.text-2xl { font-size: 1.5rem; }
+.font-medium { font-weight: 500; }
+.font-semibold { font-weight: 600; }
+.font-bold { font-weight: 700; }
+
+// Utilitários de cor
+.text-primary { color: var(--text-primary) !important; }
+.text-secondary { color: var(--text-secondary) !important; }
+.text-hint { color: var(--text-hint) !important; }
+.text-white { color: white !important; }
+.bg-primary { background-color: var(--primary) !important; }
+.bg-accent { background-color: var(--accent) !important; }
+.bg-warn { background-color: var(--warn) !important; }
+.bg-light { background-color: var(--background) !important; }
+.bg-white { background-color: white !important; }
+
+// Utilitários de borda
+.rounded-sm { border-radius: var(--border-radius-sm); }
+.rounded-md { border-radius: var(--border-radius-md); }
+.rounded-lg { border-radius: var(--border-radius-lg); }
+.border { border: 1px solid var(--divider); }
+.border-t { border-top: 1px solid var(--divider); }
+.border-r { border-right: 1px solid var(--divider); }
+.border-b { border-bottom: 1px solid var(--divider); }
+.border-l { border-left: 1px solid var(--divider); }
+
+// Utilitários de sombra
+.shadow-1 { box-shadow: var(--shadow-1); }
+.shadow-2 { box-shadow: var(--shadow-2); }
+.shadow-3 { box-shadow: var(--shadow-3); }
+.shadow-4 { box-shadow: var(--shadow-4); }
+.shadow-5 { box-shadow: var(--shadow-5); }
+
+// Utilitários de container
+.container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 var(--spacing-md);
+}
+
+@media (max-width: 640px) {
+  .hidden { display: none !important; }
+  .sm\:block { display: block !important; }
+  .sm\:hidden { display: none !important; }
+}
+
+@media (min-width: 641px) and (max-width: 768px) {
+  .md\:block { display: block !important; }
+  .md\:hidden { display: none !important; }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .lg\:block { display: block !important; }
+  .lg\:hidden { display: none !important; }
+}
+
+@media (min-width: 1025px) {
+  .xl\:block { display: block !important; }
+  .xl\:hidden { display: none !important; }
+} 
