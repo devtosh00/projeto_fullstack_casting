@@ -248,7 +248,15 @@ User (1) --< Project (1) --< ProjectParticipation >-- (N) User
 
 4. **Erro ao executar docker-compose**
    - Certifique-se de que as portas 5432, 5164 e 4200 estão disponíveis
-   - Verifique se o Docker está em execução
+
+## Histórico de Atualizações
+
+### Versão 1.2.0 (OFFICIAL)
+- Aplicação do padrão Clean Code em todos os serviços
+- Correção do campo HasVacancies no payload de atualização de projetos
+- Refatoração do ProjectService para melhor manutenção
+- Remoção de comentários desnecessários no código
+- Melhoria na gestão de vagas em projetos públicos
 
 ---
 
