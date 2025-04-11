@@ -100,7 +100,7 @@ freelancer-app/
 
 1. **Clone o repositório**:
    ```bash
-   git clone https://github.com/seu-usuario/freelancer-app.git
+   git clone https://github.com/devtosh00/projeto_fullstack_casting.git
    cd freelancer-app
    ```
 
@@ -252,16 +252,4 @@ User (1) --< Project (1) --< ProjectParticipation >-- (N) User
 
 ---
 
-## Desenvolvimento e Contribuição
 
-Para contribuir com o projeto:
-
-1. Faça um fork do repositório
-2. Crie uma branch para sua feature (`git checkout -b feature/nova-funcionalidade`)
-3. Faça commit das alterações (`git commit -m 'Adiciona nova funcionalidade'`)
-4. Envie para o repositório remoto (`git push origin feature/nova-funcionalidade`)
-5. Abra um Pull Request
-
----
-
-Para suporte adicional, entre em contato com a equipe de desenvolvimento. 
