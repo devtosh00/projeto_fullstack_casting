@@ -14,6 +14,7 @@ namespace Application.DTOs
         // Novos campos
         public bool IsPublic { get; set; } = false;
         public int MaxParticipants { get; set; } = 1;
+        public bool HasVacancies { get; set; } = false;
     }
 
     public class ProjectDto

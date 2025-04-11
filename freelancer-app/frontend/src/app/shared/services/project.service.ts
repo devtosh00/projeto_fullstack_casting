@@ -126,6 +126,7 @@ export class ProjectService {
     const formattedDate = this.formatDateForBackend(project.deadline);
     
     const payload = {
+      UserId: project.userId,
       Description: project.description,
       Budget: project.budget,
       Deadline: formattedDate,
@@ -141,12 +142,9 @@ export class ProjectService {
         this.notification.success('Projeto atualizado com sucesso!');
       }),
       catchError(error => {
-        if (error.status === 500) {
-          this.logger.error('Erro 500 ao atualizar projeto:', error);
-          this.notification.success('Projeto atualizado com sucesso!');
-          return of(project);
-        }
-        return this.handleCreateUpdateError(error, 'Erro ao atualizar projeto');
+        this.logger.error('Erro ao atualizar projeto:', error);
+        this.notification.error('Erro ao atualizar projeto. Tente novamente.');
+        return throwError(() => error);
       })
     );
   }

@@ -33,10 +33,7 @@ namespace WebAPI.Controllers
                 return BadRequest(ModelState);
             }
 
-            // Obter o ID do usuário do token JWT
             var userId = GetCurrentUserId();
-            
-            // Assegurar que o usuário só cria projetos para si mesmo
             projectDto.UserId = userId;
 
             var result = await _projectService.CreateProjectAsync(projectDto);
@@ -46,7 +43,6 @@ namespace WebAPI.Controllers
         [HttpGet("user/{userId}")]
         public async Task<IActionResult> GetUserProjects(int userId)
         {
-            // Somente permitir que o usuário veja seus próprios projetos
             var currentUserId = GetCurrentUserId();
             if (userId != currentUserId)
             {
@@ -68,7 +64,6 @@ namespace WebAPI.Controllers
                 return NotFound("Projeto não encontrado.");
             }
             
-            // Se o projeto não é público, verificar se o usuário é o proprietário ou participante
             if (!project.IsPublic)
             {
                 bool isOwner = project.UserId == userId;
@@ -86,28 +81,55 @@ namespace WebAPI.Controllers
         [HttpPut("{projectId}")]
         public async Task<IActionResult> UpdateProject(int projectId, [FromBody] ProjectCreationDto projectDto)
         {
-            if (!ModelState.IsValid)
+            try
             {
-                return BadRequest(ModelState);
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+                
+                System.Console.WriteLine($"Recebida requisição para atualizar o projeto {projectId}");
+                System.Console.WriteLine($"Descrição: {projectDto.Description}");
+                System.Console.WriteLine($"Orçamento: {projectDto.Budget}");
+                System.Console.WriteLine($"Prazo: {projectDto.Deadline}");
+                System.Console.WriteLine($"Status: {projectDto.Status}");
+                System.Console.WriteLine($"Público: {projectDto.IsPublic}");
+                System.Console.WriteLine($"Máximo de participantes: {projectDto.MaxParticipants}");
+                
+                var userId = GetCurrentUserId();
+                
+                var isOwner = await _projectService.IsProjectOwnerAsync(projectId, userId);
+                if (!isOwner)
+                {
+                    return Forbid();
+                }
+                
+                projectDto.UserId = userId;
+                
+                var result = await _projectService.UpdateProjectAsync(projectId, projectDto, userId);
+                
+                if (!result)
+                {
+                    return NotFound("Projeto não encontrado ou você não tem permissão para editá-lo.");
+                }
+                
+                return NoContent();
             }
-            
-            var userId = GetCurrentUserId();
-            
-            // Verificar se o usuário é o proprietário do projeto
-            var isOwner = await _projectService.IsProjectOwnerAsync(projectId, userId);
-            if (!isOwner)
+            catch (Exception ex)
             {
-                return Forbid();
+                System.Console.WriteLine($"ERRO ao atualizar projeto {projectId}: {ex.Message}");
+                if (ex.InnerException != null)
+                {
+                    System.Console.WriteLine($"Inner exception: {ex.InnerException.Message}");
+                }
+                System.Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                
+                return StatusCode(500, new { 
+                    error = "Erro ao atualizar projeto", 
+                    message = ex.Message,
+                    innerMessage = ex.InnerException?.Message 
+                });
             }
-            
-            var result = await _projectService.UpdateProjectAsync(projectId, projectDto, userId);
-            
-            if (!result)
-            {
-                return NotFound("Projeto não encontrado ou você não tem permissão para editá-lo.");
-            }
-            
-            return NoContent();
         }
 
         [HttpDelete("{projectId}")]

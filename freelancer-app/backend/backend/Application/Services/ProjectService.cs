@@ -25,17 +25,17 @@ namespace Application.Services
                 UserId = projectDto.UserId,
                 Description = projectDto.Description,
                 Budget = projectDto.Budget,
-                Deadline = projectDto.Deadline,
+                Deadline = projectDto.Deadline.ToUniversalTime(),
                 Status = projectDto.Status,
+                CreatedAt = DateTime.UtcNow,
                 IsPublic = projectDto.IsPublic,
                 MaxParticipants = projectDto.MaxParticipants,
-                HasVacancies = projectDto.MaxParticipants > 1 // Se MaxParticipants > 1, considera que tem vagas
+                HasVacancies = projectDto.MaxParticipants > 1
             };
 
             await _context.Projects.AddAsync(project);
             await _context.SaveChangesAsync();
             
-            // Se o projeto foi criado, adicionar o criador como participante (owner)
             if (project.Id > 0)
             {
                 var participation = new ProjectParticipation
@@ -43,7 +43,7 @@ namespace Application.Services
                     ProjectId = project.Id,
                     UserId = project.UserId,
                     Role = "owner",
-                    JoinedAt = System.DateTime.UtcNow
+                    JoinedAt = DateTime.UtcNow
                 };
                 
                 await _context.ProjectParticipations.AddAsync(participation);
@@ -62,7 +62,7 @@ namespace Application.Services
                 IsPublic = project.IsPublic,
                 MaxParticipants = project.MaxParticipants,
                 HasVacancies = project.HasVacancies,
-                CurrentParticipants = 1 // O criador já conta como um participante
+                CurrentParticipants = 1
             };
         }
 
@@ -84,28 +84,23 @@ namespace Application.Services
 
         public async Task<IEnumerable<ProjectDto>> GetUserProjectsAsync(int userId)
         {
-            // Buscar projetos que o usuário criou
             var createdProjects = await _context.Projects
                 .Where(p => p.UserId == userId)
                 .OrderByDescending(p => p.CreatedAt)
                 .ToListAsync();
                 
-            // Buscar projetos em que o usuário participa
             var participatedProjectsIds = await _context.ProjectParticipations
                 .Where(p => p.UserId == userId && p.ProjectId != 0)
                 .Select(p => p.ProjectId)
                 .ToListAsync();
                 
-            // Buscar detalhes dos projetos participados que não foram criados pelo usuário
             var participatedProjects = await _context.Projects
                 .Where(p => participatedProjectsIds.Contains(p.Id) && p.UserId != userId)
                 .OrderByDescending(p => p.CreatedAt)
                 .ToListAsync();
                 
-            // Combinar as listas e converter para DTOs
             var allProjects = createdProjects.Concat(participatedProjects).ToList();
             
-            // Buscar o número de participantes para cada projeto
             var projectIds = allProjects.Select(p => p.Id).ToList();
             var participantCounts = await _context.ProjectParticipations
                 .Where(p => projectIds.Contains(p.ProjectId))
@@ -113,7 +108,6 @@ namespace Application.Services
                 .Select(g => new { ProjectId = g.Key, Count = g.Count() })
                 .ToListAsync();
                 
-            // Criar um dicionário para acesso rápido ao número de participantes
             var countByProjectId = participantCounts.ToDictionary(p => p.ProjectId, p => p.Count);
 
             return allProjects.Select(p => new ProjectDto
@@ -144,10 +138,8 @@ namespace Application.Services
                 return null;
             }
             
-            // Contar participantes
             int participantCount = project.Participations?.Count ?? 0;
             
-            // Mapear participantes para DTOs
             var participants = project.Participations?.Select(p => new ParticipantDto
             {
                 UserId = p.UserId,
@@ -175,29 +167,55 @@ namespace Application.Services
         
         public async Task<bool> UpdateProjectAsync(int projectId, ProjectCreationDto projectDto, int userId)
         {
-            var project = await _context.Projects
-                .FirstOrDefaultAsync(p => p.Id == projectId && p.UserId == userId);
-                
-            if (project == null)
+            try
             {
-                return false;
+                var project = await _context.Projects
+                    .FirstOrDefaultAsync(p => p.Id == projectId);
+                    
+                if (project == null)
+                {
+                    return false;
+                }
+                
+                if (project.UserId != userId)
+                {
+                    return false;
+                }
+                
+                var participantCount = await _context.ProjectParticipations
+                    .CountAsync(p => p.ProjectId == projectId);
+                    
+                project.Description = projectDto.Description;
+                project.Budget = projectDto.Budget;
+                project.Status = projectDto.Status;
+                project.IsPublic = projectDto.IsPublic;
+                project.MaxParticipants = projectDto.MaxParticipants;
+                project.HasVacancies = participantCount < projectDto.MaxParticipants;
+                
+                project.Deadline = new DateTime(
+                    projectDto.Deadline.Year,
+                    projectDto.Deadline.Month,
+                    projectDto.Deadline.Day,
+                    projectDto.Deadline.Hour,
+                    projectDto.Deadline.Minute,
+                    projectDto.Deadline.Second,
+                    DateTimeKind.Utc);
+                
+                await _context.SaveChangesAsync();
+                
+                return true;
             }
-            
-            // Atualizar propriedades
-            project.Description = projectDto.Description;
-            project.Budget = projectDto.Budget;
-            project.Deadline = projectDto.Deadline;
-            project.Status = projectDto.Status;
-            project.IsPublic = projectDto.IsPublic;
-            project.MaxParticipants = projectDto.MaxParticipants;
-            
-            // Atualizar a flag de vagas disponíveis
-            await UpdateProjectVacanciesAsync(projectId);
-            
-            _context.Projects.Update(project);
-            await _context.SaveChangesAsync();
-            
-            return true;
+            catch (Exception ex)
+            {
+                System.Console.WriteLine($"ERRO ao atualizar projeto {projectId}: {ex.Message}");
+                if (ex.InnerException != null)
+                {
+                    System.Console.WriteLine($"Inner exception: {ex.InnerException.Message}");
+                    System.Console.WriteLine($"Inner exception stack trace: {ex.InnerException.StackTrace}");
+                }
+                System.Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                throw;
+            }
         }
         
         public async Task<bool> IsProjectOwnerAsync(int projectId, int userId)
@@ -215,14 +233,12 @@ namespace Application.Services
                 
             var projectIds = publicProjects.Select(p => p.Id).ToList();
             
-            // Buscar o número de participantes para cada projeto
             var participantCounts = await _context.ProjectParticipations
                 .Where(p => projectIds.Contains(p.ProjectId))
                 .GroupBy(p => p.ProjectId)
                 .Select(g => new { ProjectId = g.Key, Count = g.Count() })
                 .ToListAsync();
                 
-            // Criar um dicionário para acesso rápido ao número de participantes
             var countByProjectId = participantCounts.ToDictionary(p => p.ProjectId, p => p.Count);
             
             return publicProjects.Select(p => new ProjectDto
@@ -243,25 +259,44 @@ namespace Application.Services
         
         public async Task<bool> UpdateProjectVacanciesAsync(int projectId)
         {
-            var project = await _context.Projects
-                .Include(p => p.Participations!)
-                .FirstOrDefaultAsync(p => p.Id == projectId);
-                
-            if (project == null)
+            try
             {
-                return false;
+                var project = await _context.Projects
+                    .Include(p => p.Participations!)
+                    .FirstOrDefaultAsync(p => p.Id == projectId);
+                    
+                if (project == null)
+                {
+                    return false;
+                }
+                
+                int participantCount = project.Participations?.Count ?? 0;
+                
+                project.HasVacancies = participantCount < project.MaxParticipants;
+                
+                if (project.Deadline.Kind != DateTimeKind.Utc)
+                {
+                    project.Deadline = project.Deadline.ToUniversalTime();
+                }
+                
+                if (project.CreatedAt.Kind != DateTimeKind.Utc)
+                {
+                    project.CreatedAt = DateTime.SpecifyKind(project.CreatedAt, DateTimeKind.Utc);
+                }
+                
+                await _context.SaveChangesAsync();
+                
+                return true;
             }
-            
-            // Contar participantes
-            int participantCount = project.Participations?.Count ?? 0;
-            
-            // Atualizar flag de vagas disponíveis
-            project.HasVacancies = participantCount < project.MaxParticipants;
-            
-            _context.Projects.Update(project);
-            await _context.SaveChangesAsync();
-            
-            return true;
+            catch (System.Exception ex)
+            {
+                System.Console.WriteLine($"Erro ao atualizar vagas do projeto: {ex.Message}");
+                if (ex.InnerException != null)
+                {
+                    System.Console.WriteLine($"Inner exception: {ex.InnerException.Message}");
+                }
+                throw;
+            }
         }
     }
 } 
